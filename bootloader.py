@@ -30,4 +30,7 @@ class Bootloader:
 
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to determine bootloader: {e.stderr.decode()}")
-            raise ConfigurationError
+            raise ConfigurationError("Bootloader determination failed.")
+        except ConfigurationError as e:
+            logger.error(e)
+            raise

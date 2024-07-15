@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Author: ARC4D3 org
 # Date: 2024-01-01
-# Description: A script setup proxmox host to execute GPU passthrough
+# Description: A script to setup Proxmox host to execute GPU passthrough
 
 import subprocess
 from logger import logger

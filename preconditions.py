@@ -1,6 +1,7 @@
 import json
 import subprocess
 from logger import logger
+from hardware_info import HardwareInfo  # Added import statement for HardwareInfo
 
 class ConfigurationError(Exception):
     pass
