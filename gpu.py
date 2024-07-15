@@ -9,4 +9,4 @@ pre = SystemPreconditions()
 
 print(pre.check())
 
-print(pre.check_desired_state())
+print(pre.compare_states())

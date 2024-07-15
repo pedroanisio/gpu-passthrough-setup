@@ -9,7 +9,7 @@ from logger import logger
 
 def main():
     """Main function to run the GPU passthrough setup."""
-    configurator = SystemConfigurator()
+    configurator = SystemConfigurator(dry_run=True)
     try:
         configurator.configure_system()
         logger.info("GPU passthrough setup completed successfully.")

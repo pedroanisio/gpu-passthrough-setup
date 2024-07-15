@@ -24,16 +24,18 @@
     "desired_state": {
         "commands": [
             {
-                "description": "Check if CPU model is AMD",
+                "description": "Check if CPU model is AMD or Intel",
                 "command": "lscpu | grep 'Model name'",
                 "expected_output_contains": "AMD",
-                "failure_message": "CPU model is not AMD."
+                "failure_message": "CPU model is not AMD or Intel.",
+                "optional_expected_output_contains": ["Intel"]
             },
             {
-                "description": "Check if GPU type is Nvidia",
-                "command": "lspci | grep -i nvidia",
+                "description": "Check if GPU type is NVIDIA, AMD, or Intel",
+                "command": "lspci | grep -i 'vga\\|3d'",
                 "expected_output_contains": "NVIDIA",
-                "failure_message": "GPU type is not Nvidia."
+                "failure_message": "GPU type is not NVIDIA, AMD, or Intel.",
+                "optional_expected_output_contains": ["AMD", "Intel"]
             },
             {
                 "description": "Check if IOMMU is enabled",
@@ -50,7 +52,7 @@
             {
                 "description": "Check if GRUB has IOMMU settings",
                 "command": "grep 'iommu=pt' /etc/default/grub",
-                "expected_output_contains": "amd_iommu=on iommu=pt",
+                "expected_output_contains": "iommu=pt",
                 "failure_message": "GRUB is not configured with IOMMU settings."
             },
             {
@@ -58,6 +60,24 @@
                 "command": "grep 'options kvm ignore_msrs=1 report_ignored_msrs=0' /etc/modprobe.d/kvm.conf",
                 "expected_output_contains": "options kvm ignore_msrs=1 report_ignored_msrs=0",
                 "failure_message": "Nvidia Card settings not found in kvm.conf."
+            },
+            {
+                "description": "Check if AMD drivers are blacklisted",
+                "command": "grep 'blacklist radeon' /etc/modprobe.d/blacklist.conf && grep 'blacklist amdgpu' /etc/modprobe.d/blacklist.conf",
+                "expected_output_contains": "blacklist radeon",
+                "failure_message": "AMD drivers are not blacklisted."
+            },
+            {
+                "description": "Check if NVIDIA drivers are blacklisted",
+                "command": "grep 'blacklist nouveau' /etc/modprobe.d/blacklist.conf && grep 'blacklist nvidia' /etc/modprobe.d/blacklist.conf && grep 'blacklist nvidiafb' /etc/modprobe.d/blacklist.conf && grep 'blacklist nvidia_drm' /etc/modprobe.d/blacklist.conf",
+                "expected_output_contains": "blacklist nouveau",
+                "failure_message": "NVIDIA drivers are not blacklisted."
+            },
+            {
+                "description": "Check if Intel drivers are blacklisted",
+                "command": "grep 'blacklist snd_hda_intel' /etc/modprobe.d/blacklist.conf && grep 'blacklist snd_hda_codec_hdmi' /etc/modprobe.d/blacklist.conf && grep 'blacklist i915' /etc/modprobe.d/blacklist.conf",
+                "expected_output_contains": "blacklist snd_hda_intel",
+                "failure_message": "Intel drivers are not blacklisted."
             }
         ]
     }
