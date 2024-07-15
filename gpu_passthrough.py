@@ -110,3 +110,17 @@ class SystemConfigurator:
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to check IOMMU: {e.stderr.decode()}")
             raise ConfigurationError("Failed to check IOMMU.")
+
+def main():
+    """Main function to run the GPU passthrough setup."""
+    configurator = SystemConfigurator()
+    try:
+        configurator.configure_system()
+        logger.info("GPU passthrough setup completed successfully.")
+    except ConfigurationError as e:
+        logger.error(f"Configuration error: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+
+if __name__ == "__main__":
+    main()
