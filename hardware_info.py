@@ -75,9 +75,9 @@ class HardwareInfo:
             
             # Extract GPU and associated audio device codes
             gpu_codes = []
-            vga_bus_root = vga_info.split()[0].rsplit(':', 1)[0]  # Get the bus root (e.g., "0e:00")
+            vga_bus_id = vga_info.split()[0].rsplit('.', 1)[0]  # Get the bus root (e.g., "0e:00")
             for line in gpu_info.split('\n'):
-                if line and (vga_bus_root in line.split()[0]):
+                if line and line.split()[0].rsplit('.', 1)[0] == vga_bus_id:
                     code = line.split('[')[-1].split(']')[0].strip()
                     gpu_codes.append(code)
             self.hardware_info['gpu']['codes'] = gpu_codes
