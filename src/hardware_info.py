@@ -1,6 +1,6 @@
 import subprocess
-from logger import logger
-from configuration_error import ConfigurationError
+from src.logger import logger
+from src.configuration_error import ConfigurationError
 
 class HardwareInfo:
     def __init__(self):

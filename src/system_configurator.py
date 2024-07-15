@@ -1,14 +1,12 @@
 import subprocess
 import json
 import os
-from command_executor import CommandExecutor
-from logger import logger
-from hardware_info import HardwareInfo
-from bootloader import Bootloader
-from grub_config import GrubConfig
-from vfio import VFIO
-from preconditions import SystemPreconditions
-from configuration_error import ConfigurationError
+from src.command_executor import CommandExecutor
+from src.logger import logger
+from src.grub_config import GrubConfig
+from src.vfio import VFIO
+from src.preconditions import SystemPreconditions
+from src.configuration_error import ConfigurationError
 
 class SystemConfigurator:
     def __init__(self, dry_run=False, settings_file='config/settings.json'):
@@ -31,9 +29,10 @@ class SystemConfigurator:
             gpu_type = hardware_info['gpu']['type']
 
             if not unmet_preconditions:
-                discrepancies = self.preconditions.compare_states()
+                discrepancies = self.preconditions.compare_states()            
                 self.prepare_commands(discrepancies, hardware_info)
-
+                self.update_ramfs()  # Add this line to update ramfs    
+                                
                 if self.dry_run:
                     self.dry_run_commands()
                 else:
@@ -45,6 +44,7 @@ class SystemConfigurator:
                 discrepancies = self.preconditions.compare_states()
                 if discrepancies:
                     logger.warning("There are discrepancies between the actual and desired states. Please review.")
+ 
             else:
                 logger.warning("Some preconditions were not met. Please resolve the issues and try again.")
         except Exception as e:
@@ -180,6 +180,11 @@ class SystemConfigurator:
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to check IOMMU: {e.stderr.decode()}")
             raise ConfigurationError("Failed to check IOMMU.")
+
+    def update_ramfs(self):
+        logger.info("will update ramfs...")
+        update_ramfs_command = "update-initramfs -u"
+        self.commands.append(update_ramfs_command)
 
     def dry_run_commands(self):
         """Logs the commands that would be executed during a dry run."""

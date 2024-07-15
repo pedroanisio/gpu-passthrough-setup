@@ -1,5 +1,5 @@
 import subprocess
-from logger import logger
+from src.logger import logger
 
 class CommandExecutor:
     @staticmethod

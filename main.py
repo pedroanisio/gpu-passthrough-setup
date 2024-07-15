@@ -3,9 +3,9 @@
 # Date: 2024-01-01
 # Description: A script to setup Proxmox host to execute GPU passthrough
 
-from system_configurator import SystemConfigurator
-from preconditions import ConfigurationError
-from logger import logger
+from src.system_configurator import SystemConfigurator
+from src.preconditions import ConfigurationError
+from src.logger import logger
 
 def main():
     """Main function to run the GPU passthrough setup."""

@@ -1,6 +1,6 @@
 import subprocess
-from logger import logger
-from preconditions import ConfigurationError
+from src.logger import logger
+from src.preconditions import ConfigurationError
 
 class Bootloader:
     @staticmethod

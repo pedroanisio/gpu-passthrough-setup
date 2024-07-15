@@ -1,9 +1,9 @@
 import json
 import subprocess
 import os
-from logger import logger
-from hardware_info import HardwareInfo
-from configuration_error import ConfigurationError
+from src.logger import logger
+from src.hardware_info import HardwareInfo
+from src.configuration_error import ConfigurationError
 
 class SystemPreconditions:
     def __init__(self, settings_file='config/settings.json'):
