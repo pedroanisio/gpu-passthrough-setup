@@ -24,10 +24,10 @@
     "desired_state": {
         "commands": [
             {
-                "description": "Check if CPU model is Intel",
+                "description": "Check if CPU model is AMD",
                 "command": "lscpu | grep 'Model name'",
-                "expected_output_contains": "Intel",
-                "failure_message": "CPU model is not Intel."
+                "expected_output_contains": "AMD",
+                "failure_message": "CPU model is not AMD."
             },
             {
                 "description": "Check if GPU type is Nvidia",
@@ -48,10 +48,16 @@
                 "failure_message": "VFIO modules are not loaded."
             },
             {
-                "description": "Check if bootloader is grub-uefi",
-                "command": "efibootmgr -v",
-                "expected_output_contains": "grubx64.efi",
-                "failure_message": "Bootloader is not grub-uefi."
+                "description": "Check if GRUB has IOMMU settings",
+                "command": "grep 'iommu=pt' /etc/default/grub",
+                "expected_output_contains": "amd_iommu=on iommu=pt",
+                "failure_message": "GRUB is not configured with IOMMU settings."
+            },
+            {
+                "description": "Check if kvm.conf has Nvidia Card settings",
+                "command": "grep 'options kvm ignore_msrs=1 report_ignored_msrs=0' /etc/modprobe.d/kvm.conf",
+                "expected_output_contains": "options kvm ignore_msrs=1 report_ignored_msrs=0",
+                "failure_message": "Nvidia Card settings not found in kvm.conf."
             }
         ]
     }
