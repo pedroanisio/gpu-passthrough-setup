@@ -1,0 +1,58 @@
+{
+    "preconditions": {
+        "commands": [
+            {
+                "description": "Check if script is run as root",
+                "command": "id -u",
+                "expected_output": "0",
+                "failure_message": "Script must be run as root."
+            },
+            {
+                "description": "Check if Proxmox host",
+                "command": "test -d /etc/pve && echo exists",
+                "expected_output": "exists",
+                "failure_message": "This script must be run on a Proxmox host."
+            },
+            {
+                "description": "Check if GPU exists",
+                "command": "lspci | grep -i vga",
+                "expected_output_contains": "VGA",
+                "failure_message": "No GPU found. GPU is mandatory."
+            }
+        ]
+    },
+    "desired_state": {
+        "commands": [
+            {
+                "description": "Check if CPU model is Intel",
+                "command": "lscpu | grep 'Model name'",
+                "expected_output_contains": "Intel",
+                "failure_message": "CPU model is not Intel."
+            },
+            {
+                "description": "Check if GPU type is Nvidia",
+                "command": "lspci | grep -i nvidia",
+                "expected_output_contains": "NVIDIA",
+                "failure_message": "GPU type is not Nvidia."
+            },
+            {
+                "description": "Check if IOMMU is enabled",
+                "command": "dmesg | grep -e IOMMU",
+                "expected_output_contains": "IOMMU",
+                "failure_message": "IOMMU is not enabled."
+            },
+            {
+                "description": "Check if VFIO modules are loaded",
+                "command": "lsmod | grep vfio",
+                "expected_output_contains": "vfio",
+                "failure_message": "VFIO modules are not loaded."
+            },
+            {
+                "description": "Check if bootloader is grub-uefi",
+                "command": "efibootmgr -v",
+                "expected_output_contains": "grubx64.efi",
+                "failure_message": "Bootloader is not grub-uefi."
+            }
+        ]
+    }
+}
