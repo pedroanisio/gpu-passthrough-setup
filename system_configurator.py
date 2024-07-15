@@ -1,4 +1,6 @@
 import subprocess
+import json
+import os
 from command_executor import CommandExecutor
 from logger import logger
 from hardware_info import HardwareInfo
@@ -9,45 +11,29 @@ from preconditions import SystemPreconditions
 from configuration_error import ConfigurationError
 
 class SystemConfigurator:
-    def __init__(self, dry_run=False):
+    def __init__(self, dry_run=False, settings_file='config/settings.json'):
         self.commands = []
         self.rollback_commands = []
-        self.preconditions = SystemPreconditions()
+        self.preconditions = SystemPreconditions(settings_file)
         self.dry_run = dry_run
+        self.settings = self.load_settings(settings_file)
+
+    @staticmethod
+    def load_settings(settings_file):
+        """Loads settings from a JSON file."""
+        with open(settings_file, 'r') as f:
+            return json.load(f)
 
     def configure_system(self):
         """Configures the system for GPU passthrough."""
         try:
             hardware_info, unmet_preconditions = self.preconditions.check()
             gpu_type = hardware_info['gpu']['type']
-            if unmet_preconditions:
-                if "Check if GRUB has IOMMU settings" in unmet_preconditions:
-                    grub_config = GrubConfig()
-                    grub_config.backup_grub_config()
-                    self.commands.append(grub_config.modify_grub_config())
-                    self.rollback_commands.append(grub_config.restore_grub_config())
-                if "Check if VFIO modules are loaded" in unmet_preconditions:
-                    VFIO.ensure_vfio_modules()
-                if "Check if kvm.conf has Nvidia Card settings" in unmet_preconditions and gpu_type == 'nvidia':
-                    vfio_conf_command = self.create_vfio_conf(hardware_info['gpu']['codes'])
-                    self.commands.append(vfio_conf_command)
-                    self.rollback_commands.append("rm /etc/modprobe.d/vfio.conf")
-                if "Check if AMD drivers are blacklisted" in unmet_preconditions and gpu_type == 'amd':
-                    blacklist_command = self.blacklist_drivers('amd')
-                    self.commands.append(blacklist_command)
-                    self.rollback_commands.append(self.unblacklist_drivers('amd'))
-                if "Check if NVIDIA drivers are blacklisted" in unmet_preconditions and gpu_type == 'nvidia':
-                    blacklist_command = self.blacklist_drivers('nvidia')
-                    self.commands.append(blacklist_command)
-                    self.rollback_commands.append(self.unblacklist_drivers('nvidia'))
-                if "Check if Intel drivers are blacklisted" in unmet_preconditions and gpu_type == 'intel':
-                    blacklist_command = self.blacklist_drivers('intel')
-                    self.commands.append(blacklist_command)
-                    self.rollback_commands.append(self.unblacklist_drivers('intel'))
-                
-                bootloader = Bootloader.determine_bootloader()
-                self.commands.extend(self.get_bootloader_specific_commands(bootloader))
-                
+
+            if not unmet_preconditions:
+                discrepancies = self.preconditions.compare_states()
+                self.prepare_commands(discrepancies, hardware_info)
+
                 if self.dry_run:
                     self.dry_run_commands()
                 else:
@@ -60,13 +46,44 @@ class SystemConfigurator:
                 if discrepancies:
                     logger.warning("There are discrepancies between the actual and desired states. Please review.")
             else:
-                logger.info("All preconditions are already met. No configuration needed.")
+                logger.warning("Some preconditions were not met. Please resolve the issues and try again.")
         except Exception as e:
             logger.error(f"An error occurred: {e}. Rolling back changes...")
             for command in self.rollback_commands:
                 CommandExecutor.rollback(command)
             logger.error("Rollback complete. Please check the system state.")
             raise
+
+    def prepare_commands(self, discrepancies, hardware_info):
+        """Prepares the necessary commands based on discrepancies."""
+        gpu_type = hardware_info['gpu']['type']
+        for condition in self.settings['desired_state']['commands']:
+            description = condition['description']
+
+            if description in discrepancies:
+                if "GRUB has IOMMU settings" in description:
+                    grub_config = GrubConfig()
+                    grub_config.backup_grub_config()
+                    self.commands.append(grub_config.modify_grub_config())
+                    self.rollback_commands.append(grub_config.restore_grub_config())
+                elif "VFIO modules are loaded" in description:
+                    VFIO.ensure_vfio_modules()
+                elif "kvm.conf has Nvidia Card settings" in description and gpu_type == 'nvidia':
+                    vfio_conf_command = self.create_vfio_conf(hardware_info['gpu']['codes'])
+                    self.commands.append(vfio_conf_command)
+                    self.rollback_commands.append("rm /etc/modprobe.d/vfio.conf")
+                elif "AMD drivers are blacklisted" in description and gpu_type == 'amd':
+                    blacklist_command = self.blacklist_drivers('amd')
+                    self.commands.append(blacklist_command)
+                    self.rollback_commands.append(self.unblacklist_drivers('amd'))
+                elif "NVIDIA drivers are blacklisted" in description and gpu_type == 'nvidia':
+                    blacklist_command = self.blacklist_drivers('nvidia')
+                    self.commands.append(blacklist_command)
+                    self.rollback_commands.append(self.unblacklist_drivers('nvidia'))
+                elif "Intel drivers are blacklisted" in description and gpu_type == 'intel':
+                    blacklist_command = self.blacklist_drivers('intel')
+                    self.commands.append(blacklist_command)
+                    self.rollback_commands.append(self.unblacklist_drivers('intel'))
 
     def get_bootloader_specific_commands(self, bootloader):
         """Returns bootloader specific commands."""
