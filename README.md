@@ -1,6 +1,8 @@
 # GPU Passthrough Setup for Proxmox
 
-This project provides a script to facilitate GPU passthrough setup on Proxmox hosts. It automates the configuration process, ensuring that your Proxmox environment is ready to utilize GPUs within virtual machines.
+This project provides a script to facilitate GPU passthrough setup on Proxmox hosts. 
+It automates the configuration process, ensuring that your Proxmox environment is ready
+to utilize GPUs within virtual machines.
 
 ## Features
 
@@ -27,13 +29,13 @@ cd gpu-passthrough-setup
 To execute the script:
 
 ```bash
-./setup.py
+./main.py
 ```
 
 To perform a dry run:
 
 ```bash
-./setup.py --dry-run
+./main.py --dry-run
 ```
 
 ## Configuration Files
